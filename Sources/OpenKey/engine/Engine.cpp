@@ -1286,28 +1286,42 @@ void vEnglishMode(const vKeyEventState& state, const Uint16& data, const bool& i
     if (state == vKeyEventState::MouseDown || (otherControlKey && !isCaps)) {
         hMacroKey.clear();
         _willTempOffEngine = false;
-    } else if (data == KEY_SPACE) {
-        if (!_hasHandledMacro && findMacro(hMacroKey, hMacroData)) {
-            hCode = vReplaceMaro;
-            hBPC = (Byte)hMacroKey.size();
-        }
+        return;
+    }
+
+    bool isSpace = (data == KEY_SPACE);
+    bool isMacro = findMacro(hMacroKey, hMacroData);
+    bool isMacroBreak = isMacro && isMacroBreakCode(data);
+    bool trigger = isMacro && (isMacroBreak || isSpace);
+    if (trigger) {
+        hCode = vReplaceMaro;
+        hBPC = (Byte)hMacroKey.size();
         hMacroKey.clear();
         _willTempOffEngine = false;
-    } else if (data == KEY_DELETE) {
+        return;
+    }
+
+    if (data == KEY_DELETE) {
         if (hMacroKey.size() > 0) {
             hMacroKey.pop_back();
-        } else {
-            _willTempOffEngine = false;
         }
-    } else {
-        if (isWordBreak(vKeyEvent::Keyboard, state, data) &&
-            std::find(_charKeyCode.begin(), _charKeyCode.end(), data) == _charKeyCode.end()) {
-            hMacroKey.clear();
-            _willTempOffEngine = false;
-        } else {
-            if (!_willTempOffEngine)
-                hMacroKey.push_back(data | (isCaps ? CAPS_MASK : 0));
-        }
+        _willTempOffEngine = false;
+        return;
+    }
+
+    // Check for word breaks that are NOT also character keys (like symbols, enter, tab etc.)
+    // just clear the buffer.
+    bool isNonCharBreak = isWordBreak(vKeyEvent::Keyboard, state, data) &&
+                          std::find(_charKeyCode.begin(), _charKeyCode.end(), data) == _charKeyCode.end();
+    if (isSpace || isNonCharBreak) {
+        hMacroKey.clear();
+        _willTempOffEngine = false;
+        return;
+    }
+
+    // Handle normal characters or character keys that might also be break codes (e.g., ',', '.')
+    if (!_willTempOffEngine) {
+        hMacroKey.push_back(data | (isCaps ? CAPS_MASK : 0));
     }
 }
 
