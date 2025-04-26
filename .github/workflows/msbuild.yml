@@ -2,7 +2,7 @@ name: MSBuild
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "fix/temp-path" ]
   pull_request:
     branches: [ "master" ]
 
