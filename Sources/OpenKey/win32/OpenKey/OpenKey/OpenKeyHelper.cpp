@@ -131,13 +131,13 @@ string& OpenKeyHelper::getFrontMostAppExecuteName() {
 	_proc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, _tempProcessId);
 	GetProcessImageFileName((HMODULE)_proc, _exePath, 1024);
 	CloseHandle(_proc);
-	
+
 	if (wcscmp(_exePath, _T("")) == 0) {
 		return _unknownProgram;
 	}
 	_exeName = _tcsrchr(_exePath, '\\') + 1;
 	if (wcscmp(_exeName, _T("OpenKey64.exe")) == 0 ||
-		wcscmp(_exeName, _T("OpenKey32.exe")) == 0 || 
+		wcscmp(_exeName, _T("OpenKey32.exe")) == 0 ||
 		wcscmp(_exeName, _T("explorer.exe")) == 0) {
 		return _exeNameUtf8;
 	}
@@ -183,13 +183,13 @@ wstring OpenKeyHelper::getClipboardText(const int& type) {
 
 	// Save text in a string class instance
 	wstring text(pszText);
-	
+
 	// Release the lock
 	GlobalUnlock(hData);
 
 	// Release the clipboard
 	CloseClipboard();
-	
+
 	return text;
 }
 
@@ -300,17 +300,17 @@ wstring OpenKeyHelper::getVersionString() {
 
 	// get the filename of the executable containing the version resource
 	TCHAR szFilename[MAX_PATH + 1] = { 0 };
-	if (GetModuleFileName(NULL, szFilename, MAX_PATH) == 0) { 
+	if (GetModuleFileName(NULL, szFilename, MAX_PATH) == 0) {
 		return _T("");
 	}
 }
 
 wstring OpenKeyHelper::getContentOfUrl(LPCTSTR url){
 	WCHAR path[MAX_PATH];
-	GetTempPath2(MAX_PATH, path);
+	GetTempPath(MAX_PATH, path);
 	wsprintf(path, TEXT("%s\\_OpenKey.tempf"), path);
 	HRESULT res = URLDownloadToFile(NULL, url, path, 0, NULL);
-	
+
 	if (res == S_OK) {
 		std::wifstream t(path);
 		std::wstringstream buffer;
@@ -319,11 +319,11 @@ wstring OpenKeyHelper::getContentOfUrl(LPCTSTR url){
 		DeleteFile(path);
 		return buffer.str();
 	} else if (res == E_OUTOFMEMORY) {
-		
+
 	} else if (res == INET_E_DOWNLOAD_FAILURE) {
-		
+
 	} else {
-		
+
 	}
 	return L"";
 }

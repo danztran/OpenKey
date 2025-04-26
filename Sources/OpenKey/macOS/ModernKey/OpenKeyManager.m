@@ -37,10 +37,10 @@ static CFRunLoopSourceRef runLoopSource;
 +(BOOL)initEventTap {
     if (_isInited)
         return true;
-    
+
     //init modernKey
     OpenKeyInit();
-    
+
     // Create an event tap. We are interested in key presses.
     eventMask = ((1 << kCGEventKeyDown) |
                  (1 << kCGEventKeyUp) |
@@ -49,49 +49,49 @@ static CFRunLoopSourceRef runLoopSource;
                  (1 << kCGEventRightMouseDown) |
                  (1 << kCGEventLeftMouseDragged) |
                  (1 << kCGEventRightMouseDragged));
-    
+
     eventTap = CGEventTapCreate(kCGSessionEventTap,
                                 kCGHeadInsertEventTap,
                                 0,
                                 eventMask,
                                 OpenKeyCallback,
                                 NULL);
-    
+
     if (!eventTap) {
-        
+
         fprintf(stderr, "failed to create event tap\n");
         return NO;
     }
-    
+
     _isInited = YES;
-    
+
     // Create a run loop source.
     runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
-    
+
     // Add to the current run loop.
     CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
-    
+
     // Enable the event tap.
     CGEventTapEnable(eventTap, true);
-    
+
     // Set it all running.
     CFRunLoopRun();
-    
+
     return YES;
 }
 
 +(BOOL)stopEventTap {
     if (_isInited) { //release all object
         CFRunLoopStop(CFRunLoopGetCurrent());
-        
+
         CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode);
         CFRelease(runLoopSource);
         runLoopSource = nil;
-        
+
         CFMachPortInvalidate(eventTap);
         CFRelease(eventTap);
         eventTap = nil;
-        
+
         _isInited = false;
     }
     return YES;
@@ -130,7 +130,7 @@ static CFRunLoopSourceRef runLoopSource;
             [pasteboard setString:htmlString forType:NSPasteboardTypeHTML];
         if (rawString != nil)
             [pasteboard setString:rawString forType:NSPasteboardTypeString];
-        
+
         return YES;
     }
     return NO;
@@ -163,7 +163,7 @@ static CFRunLoopSourceRef runLoopSource;
                                  JSONObjectWithData:data
                                  options:0
                                  error:&error];
-                    
+
                     if(error) {  }
                     if([object isKindOfClass:[NSDictionary class]]) {
                         NSDictionary *results = object;
@@ -171,7 +171,7 @@ static CFRunLoopSourceRef runLoopSource;
                         NSString* versionCodeString = [ver valueForKey:@"versionCode"];
                         int versionCode = (int)[versionCodeString integerValue];
                         int currentVersionCode = (int)[((NSString*)[[NSBundle mainBundle] objectForInfoDictionaryKey: @"CFBundleVersion"]) integerValue];
-                        
+
                         dispatch_async(dispatch_get_main_queue(), ^{
                             if (callback != nil) {
                                 callback();
@@ -197,7 +197,7 @@ static CFRunLoopSourceRef runLoopSource;
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:(needUpdating ? [NSString stringWithFormat:@"OpenKey Có phiên bản mới (%@), bạn có muốn cập nhật không?", versionString] : @"Bạn đang dùng phiên bản mới nhất!")];
     [alert setInformativeText:(needUpdating ? @"Bấm 'Có' để cập nhật OpenKey." : @"")];
-    
+
     if (!needUpdating) {
         [alert addButtonWithTitle:@"OK"];
     } else {
@@ -227,18 +227,18 @@ static CFRunLoopSourceRef runLoopSource;
     [[NSFileManager defaultManager] removeItemAtPath:target error:&copyError];
     if (![[NSFileManager defaultManager] fileExistsAtPath:target]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:[self getApplicationSupportFolder] withIntermediateDirectories:YES attributes:nil error:nil];
-        
+
         if (![[NSFileManager defaultManager] copyItemAtPath:[self getUpdateBundlePath] toPath:target error:&copyError]) {
             NSLog(@"Error on copy");
         }
     }
-    
+
     NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
     NSURL *url = [NSURL fileURLWithPath:[workspace fullPathForApplication:target]];
     NSError *error = nil;
     NSArray *arguments = [NSArray arrayWithObjects: @"yeah", nil];
     [workspace launchApplicationAtURL:url options:0 configuration:[NSDictionary dictionaryWithObject:arguments forKey:NSWorkspaceLaunchConfigurationArguments] error:&error];
-    
+
     [NSApp terminate:0]; //exit main app
 }
 

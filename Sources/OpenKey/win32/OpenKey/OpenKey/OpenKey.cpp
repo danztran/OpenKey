@@ -305,7 +305,7 @@ static void SendNewCharString(const bool& dataFromMacro = false) {
 		_newCharString.resize(_newCharSize);
 	}
 	_willSendControlKey = false;
-	
+
 	if (_newCharSize > 0) {
 		for (_k = dataFromMacro ? 0 : pData->newCharCount - 1;
 			dataFromMacro ? _k < pData->macroData.size() : _k >= 0;
@@ -372,7 +372,7 @@ static void SendNewCharString(const bool& dataFromMacro = false) {
 
 	//Send shift + insert
 	SendCombineKey(KEY_LEFT_SHIFT, VK_INSERT, 0, KEYEVENTF_EXTENDEDKEY);
-	
+
 	//the case when hCode is vRestore or vRestoreAndStartNewSession,
 	//the word is invalid and last key is control key such as TAB, LEFT ARROW, RIGHT ARROW,...
 	if (_willSendControlKey) {
@@ -466,9 +466,9 @@ static bool SetModifierMask(const Uint16& vkCode) {
 	else if (vkCode == VK_LWIN || vkCode == VK_RWIN) _flag |= MASK_WIN;
 	else if (vkCode == VK_NUMLOCK) _flag |= MASK_NUMLOCK;
 	else if (vkCode == VK_SCROLL) _flag |= MASK_SCROLL;
-	else { 
+	else {
 		_isFlagKey = false;
-		return false; 
+		return false;
 	}
 	_isFlagKey = true;
 	return true;
@@ -481,9 +481,9 @@ static bool UnsetModifierMask(const Uint16& vkCode) {
 	else if (vkCode == VK_LWIN || vkCode == VK_RWIN) _flag &= ~MASK_WIN;
 	else if (vkCode == VK_NUMLOCK) _flag &= ~MASK_NUMLOCK;
 	else if (vkCode == VK_SCROLL) _flag &= ~MASK_SCROLL;
-	else { 
+	else {
 		_isFlagKey = false;
-		return false; 
+		return false;
 	}
 	_isFlagKey = true;
 	return true;
@@ -495,7 +495,7 @@ LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (keyboardData->dwExtraInfo != 0) {
 		return CallNextHookEx(hKeyboardHook, nCode, wParam, lParam);
 	}
-	
+
 	//ignore if IME pad is open when typing Japanese/Chinese...
 	HWND hWnd = GetForegroundWindow();
 	HWND hIME = ImmGetDefaultIMEWnd(hWnd);
@@ -503,7 +503,7 @@ LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (isImeON) {
 		return CallNextHookEx(hKeyboardHook, nCode, wParam, lParam);
 	}
-	
+
 	//check modifier key
 	if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 		//LOG(L"Key down: %d\n", keyboardData->vkCode);
@@ -571,7 +571,7 @@ LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 
 			if (pData->code == vReplaceMaro) { //handle macro in english mode
 				handleMacro();
-				return NULL;
+				return -1; // Use -1 to properly consume the keypress event
 			}
 		}
 		return CallNextHookEx(hKeyboardHook, nCode, wParam, lParam);
@@ -605,7 +605,7 @@ LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 		} else if (pData->code == vWillProcess || pData->code == vRestore || pData->code == vRestoreAndStartNewSession) { //handle result signal
 			//fix autocomplete
 			if (vFixRecommendBrowser && pData->extCode != 4) {
-				if (vFixChromiumBrowser && 
+				if (vFixChromiumBrowser &&
 					std::find(_chromiumBrowser.begin(), _chromiumBrowser.end(), OpenKeyHelper::getLastAppExecuteName()) != _chromiumBrowser.end()) {
 					SendCombineKey(KEY_LEFT_SHIFT, KEY_LEFT, 0, KEYEVENTF_EXTENDEDKEY);
 					if (pData->backspaceCount == 1)
@@ -615,7 +615,7 @@ LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 					pData->backspaceCount++;
 				}
 			}
-			
+
 			//send backspace
 			if (pData->backspaceCount > 0 && pData->backspaceCount < MAX_BUFF) {
 				for (_i = 0; _i < pData->backspaceCount; _i++) {
@@ -651,7 +651,7 @@ LRESULT CALLBACK mouseHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 	mouseData = (MSLLHOOKSTRUCT *)lParam;
 	switch (wParam) {
 	case WM_LBUTTONDOWN:
-	
+
 	case WM_RBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_XBUTTONDOWN:
